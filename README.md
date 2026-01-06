@@ -63,13 +63,7 @@ API runs at `http://127.0.0.1:8000`
 
 ### 4. Open Dashboard
 
-Open `index.html` in your browser or run:
-
-```bash
-python -m http.server 8080
-```
-
-Then visit `http://localhost:8080`
+Open `index.html` in your browser.
 
 ## Project Structure
 
