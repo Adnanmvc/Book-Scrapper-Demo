@@ -31,7 +31,7 @@ This project scrapes book data from [books.toscrape.com](http://books.toscrape.c
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/book-scraper-demo.git
+git clone https://github.com/Adnanmvc/Book-Scrapper-Demo.git
 cd book-scraper-demo
 ```
 
