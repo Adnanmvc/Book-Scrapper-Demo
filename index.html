@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Scraper Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .download-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .download-section label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .download-section input[type="number"] {
+            width: 150px;
+            flex: none;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-item {
+            margin-bottom: 12px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #555;
+            display: inline-block;
+            width: 120px;
+        }
+
+        .result-value {
+            color: #333;
+        }
+
+        .result-url {
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .result-url:hover {
+            text-decoration: underline;
+        }
+
+        .rating {
+            color: #ffa500;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .download-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .download-section input[type="number"] {
+                width: 100%;
+            }
+
+            .result-label {
+                width: 100%;
+                display: block;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Book Scraper</h1>
+            <p>Scrape books from books.toscrape.com</p>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">🔍 Buch suchen</h2>
+            <div class="search-section">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Buchtitel eingeben..."
+                    >
+                    <button id="searchBtn">Suchen</button>
+                </div>
+                <div class="loading" id="searchLoading">
+                    <div class="spinner"></div>
+                    <p>Suche läuft...</p>
+                </div>
+                <div class="error" id="searchError"></div>
+                <div id="searchResult"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">💾 Bücher exportieren</h2>
+            <div class="download-section">
+                <label for="limitInput">Anzahl Bücher:</label>
+                <input 
+                    type="number" 
+                    id="limitInput" 
+                    placeholder="z.B. 50" 
+                    min="1" 
+                    value="50"
+                >
+                <button id="downloadBtn">XLSX herunterladen</button>
+            </div>
+            <div class="loading" id="downloadLoading">
+                <div class="spinner"></div>
+                <p>Bücher werden gesammelt...</p>
+            </div>
+            <div class="error" id="downloadError"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000/api';
+
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const query = document.getElementById('searchInput').value.trim();
+            
+            if (!query) {
+                showError('searchError', 'Bitte einen Buchtitel eingeben');
+                return;
+            }
+
+            showLoading('searchLoading', true);
+            hideError('searchError');
+            document.getElementById('searchResult').innerHTML = '';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/book?title=${encodeURIComponent(query)}`);
+                
+                if (!response.ok) {
+                    throw new Error('Buch nicht gefunden');
+                }
+
+                const data = await response.json();
+                displaySearchResult(data);
+            } catch (error) {
+                showError('searchError', error.message);
+            } finally {
+                showLoading('searchLoading', false);
+            }
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', async () => {
+            const limit = document.getElementById('limitInput').value;
+
+            if (!limit || limit < 1) {
+                showError('downloadError', 'Bitte eine gültige Anzahl eingeben');
+                return;
+            }
+
+            showLoading('downloadLoading', true);
+            hideError('downloadError');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/books?limit=${limit}`);
+                
+                if (!response.ok) {
+                    throw new Error('Export fehlgeschlagen');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `books_export_${Date.now()}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                showError('downloadError', error.message);
+            } finally {
+                showLoading('downloadLoading', false);
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
+            }
+        });
+
+        function displaySearchResult(book) {
+            const resultHtml = `
+                <div class="result-card">
+                    <div class="result-item">
+                        <span class="result-label">Titel:</span>
+                        <span class="result-value">${book.title}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Preis:</span>
+                        <span class="result-value">${book.price}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Verfügbarkeit:</span>
+                        <span class="result-value">${book.availability}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Bewertung:</span>
+                        <span class="result-value rating">${book.rating} ⭐</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">URL:</span>
+                        <a href="${book.url}" target="_blank" class="result-url">${book.url}</a>
+                    </div>
+                </div>
+            `;
+            document.getElementById('searchResult').innerHTML = resultHtml;
+        }
+
+        function showLoading(id, show) {
+            const el = document.getElementById(id);
+            if (show) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        }
+
+        function showError(id, message) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.classList.add('active');
+        }
+
+        function hideError(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('active');
+        }
+    </script>
+</body>
+</html>
